@@ -27,49 +27,79 @@ async function run() {
         await client.connect();
 
         const coffeCollection = client.db('CoffeeDB').collection('coffee');
+        const userCollection = client.db('CoffeeDB').collection('user');
 
-
-        app.get('/all', async(req, res) => {
+        app.get('/all', async (req, res) => {
             const cursor = coffeCollection.find();
             const result = await cursor.toArray();
             res.send(result);
         })
 
-
-        app.post('/coffee', async(req, res) => {
+        app.post('/coffee', async (req, res) => {
             const newCoffee = req.body;
             console.log(newCoffee);
             const result = await coffeCollection.insertOne(newCoffee);
             res.send(result);
         })
 
-        app.delete("/coffee/:id", async(req, res) => {
+        app.delete("/coffee/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await coffeCollection.deleteOne(query);
             res.send(result);
         })
 
-        app.get('/coffee/:id', async(req, res) => {
+        // user related api
+        app.get('/user', async (req, res) => {
+            const cursor = userCollection.find();
+            const users = await cursor.toArray();
+            res.send(users);
+        })
+        app.post('/user', async (req, res) => {
+            const user = req.body;
+            console.log(user);
+            const result = await userCollection.insertOne(user);
+            res.send(result);
+        })
+        app.delete('/user/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
+            const result = await userCollection.deleteOne(query);
+            res.send(result);
+        })
+        app.patch('/user', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email };
+            const updatedUser = {
+                $set: {
+                    lastLoggedAt: user.lastLoggedAt
+                }
+            }
+            const result = await userCollection.updateOne(filter, updatedUser)
+            res.send(result)
+        })
+
+
+        app.get('/coffee/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
             const result = await coffeCollection.findOne(query);
             res.send(result);
         })
 
-        app.put('/coffee/:id', async(req, res) => {
+        app.put('/coffee/:id', async (req, res) => {
             const id = req.params.id;
-            const filter = {_id: new ObjectId(id)};
-            const options = {usert:true};
+            const filter = { _id: new ObjectId(id) };
+            const options = { usert: true };
             const updatedCoffee = req.body;
             const coffee = {
                 $set: {
-                    name: updatedCoffee.name, 
-                    quantity: updatedCoffee.quantity, 
-                    suppiler: updatedCoffee.suppiler, 
-                    taste: updatedCoffee.taste, 
-                    category: updatedCoffee.category, 
-                    details: updatedCoffee.details, 
+                    name: updatedCoffee.name,
+                    quantity: updatedCoffee.quantity,
+                    suppiler: updatedCoffee.suppiler,
+                    taste: updatedCoffee.taste,
+                    category: updatedCoffee.category,
+                    details: updatedCoffee.details,
                     photoURL: updatedCoffee.photoURL
                 }
             }
